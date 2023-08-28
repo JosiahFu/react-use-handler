@@ -8,11 +8,13 @@ import { useEffect } from 'react';
  * @param target The event target, `window` if not specified.
  * @param options The options for `addEventListener`.
  */
-function useHandler<K extends keyof GlobalEventHandlersEventMap, T extends GlobalEventHandlers>(type: K, callback: (event: GlobalEventHandlersEventMap[K]) => any, target: T = (window as unknown) as T, options?: boolean | AddEventListenerOptions) {
+function useHandler<K extends keyof GlobalEventHandlersEventMap, T extends GlobalEventHandlers>(type: K, callback: (event: GlobalEventHandlersEventMap[K]) => any, target?: T, options?: boolean | AddEventListenerOptions) {
     useEffect(() => {
-        target.addEventListener(type, callback, options);
-        return () => target.removeEventListener(type, callback, options);
+        if (!target && typeof window === 'undefined') return; // Case to handle Preact pre-rendering
+        const eventTarget = target ?? window as unknown as T;
+        eventTarget.addEventListener(type, callback, options);
+        return () => eventTarget.removeEventListener(type, callback, options);
     }, [callback, options, target, type]);
-};
+}
 
 export { useHandler };
